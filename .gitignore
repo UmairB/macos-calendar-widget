@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+*.saver/
+calendar-refresh
+
+# macOS noise
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs
+*.log
