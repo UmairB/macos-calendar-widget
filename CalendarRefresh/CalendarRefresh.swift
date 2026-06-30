@@ -26,6 +26,7 @@ struct CalendarEvent: Codable {
     let allDay: Bool
     let location: String?
     let calendar: String
+    let myStatus: String?    // "accepted" | "pending" | "tentative" | "delegated" | nil (no attendees / personal event)
 }
 
 struct WeatherSnapshot: Codable {
@@ -58,18 +59,42 @@ let isoFormatter: ISO8601DateFormatter = {
 
 func iso(_ date: Date) -> String { isoFormatter.string(from: date) }
 
+/// Reads the user's own participant status from an EKEvent. Returns nil when
+/// the event has no attendees (treated as accepted). Returns "declined" for
+/// declined invites — these get filtered out downstream.
+func myStatus(for event: EKEvent) -> String? {
+    guard let attendees = event.attendees, !attendees.isEmpty else { return nil }
+    if let me = attendees.first(where: { $0.isCurrentUser }) {
+        switch me.participantStatus {
+        case .pending:   return "pending"
+        case .accepted:  return "accepted"
+        case .declined:  return "declined"
+        case .tentative: return "tentative"
+        case .delegated: return "delegated"
+        case .completed, .inProcess, .unknown: return "accepted"
+        @unknown default: return "accepted"
+        }
+    }
+    // Attendees exist but you're not one — almost certainly the organizer.
+    return "accepted"
+}
+
 func fetchEvents(_ store: EKEventStore, from: Date, to: Date) -> [CalendarEvent] {
     let predicate = store.predicateForEvents(withStart: from, end: to, calendars: nil)
     return store.events(matching: predicate)
         .sorted { $0.startDate < $1.startDate }
-        .map { e in
-            CalendarEvent(
+        .compactMap { e -> CalendarEvent? in
+            let status = myStatus(for: e)
+            // Drop declined invites entirely.
+            if status == "declined" { return nil }
+            return CalendarEvent(
                 title: e.title ?? "(Untitled)",
                 start: iso(e.startDate),
                 end: iso(e.endDate),
                 allDay: e.isAllDay,
                 location: (e.location?.isEmpty == false) ? e.location : nil,
-                calendar: e.calendar.title
+                calendar: e.calendar.title,
+                myStatus: status
             )
         }
 }

@@ -7,6 +7,7 @@ struct CalendarEvent: Codable, Identifiable {
     let allDay: Bool
     let location: String?
     let calendar: String
+    let myStatus: String?  // "accepted" | "pending" | "tentative" | "delegated" | nil
 
     var id: String { "\(start)|\(title)" }
 
