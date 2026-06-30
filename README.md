@@ -6,6 +6,8 @@ as an always-on, auto-locking calendar display.
 
 Built for macOS 26 (Tahoe). No third-party dependencies. No API keys.
 
+![CalendarSaver dashboard](screenshots/dashboard.png)
+
 ## What problem this solves
 
 macOS does not natively support widgets or calendar info on the Lock Screen
