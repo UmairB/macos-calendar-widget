@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.umairb.CalendarRefresh</string>
+    <string>com.example.CalendarRefresh</string>
     <key>CFBundleName</key>
     <string>CalendarRefresh</string>
     <key>CFBundleExecutable</key>

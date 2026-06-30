@@ -10,12 +10,9 @@
 import Foundation
 import EventKit
 
-// MARK: - Location (edit to change weather location)
-
-let WEATHER_LAT: Double   = 51.473185     // SW11 3ET (Battersea, London)
-let WEATHER_LON: Double   = -0.167173
-let WEATHER_LABEL: String = "London"
-let WEATHER_CACHE_SECONDS: TimeInterval = 15 * 60
+// Location constants (WEATHER_LAT / WEATHER_LON / WEATHER_LABEL /
+// WEATHER_CACHE_SECONDS) are defined in Location.swift, which is gitignored.
+// Copy Location.swift.example → Location.swift and edit before building.
 
 // MARK: - JSON model
 
@@ -264,44 +261,49 @@ func write(_ payload: EventsPayload) {
 
 // MARK: - Main
 
-// Weather: use cache if fresh, otherwise refetch.
-let weather = cachedFreshWeather() ?? fetchWeather()
+@main
+struct CalendarRefreshApp {
+    static func main() {
+        // Weather: use cache if fresh, otherwise refetch.
+        let weather = cachedFreshWeather() ?? fetchWeather()
 
-let store = EKEventStore()
-let semaphore = DispatchSemaphore(value: 0)
-var grantedFlag = false
-var errorMsg: String? = nil
+        let store = EKEventStore()
+        let semaphore = DispatchSemaphore(value: 0)
+        var grantedFlag = false
+        var errorMsg: String? = nil
 
-store.requestFullAccessToEvents { granted, error in
-    grantedFlag = granted
-    if let error = error { errorMsg = error.localizedDescription }
-    semaphore.signal()
+        store.requestFullAccessToEvents { granted, error in
+            grantedFlag = granted
+            if let error = error { errorMsg = error.localizedDescription }
+            semaphore.signal()
+        }
+        semaphore.wait()
+
+        if !grantedFlag {
+            let payload = EventsPayload(
+                generatedAt: iso(Date()),
+                status: errorMsg == nil ? "no_access" : "error",
+                errorMessage: errorMsg,
+                today: [], tomorrow: [],
+                weather: weather
+            )
+            write(payload)
+            exit(0)
+        }
+
+        let cal = Calendar.current
+        let todayStart = cal.startOfDay(for: Date())
+        let tomorrowStart = cal.date(byAdding: .day, value: 1, to: todayStart)!
+        let dayAfter = cal.date(byAdding: .day, value: 2, to: todayStart)!
+
+        let payload = EventsPayload(
+            generatedAt: iso(Date()),
+            status: "ok",
+            errorMessage: nil,
+            today:    fetchEvents(store, from: todayStart, to: tomorrowStart),
+            tomorrow: fetchEvents(store, from: tomorrowStart, to: dayAfter),
+            weather:  weather
+        )
+        write(payload)
+    }
 }
-semaphore.wait()
-
-if !grantedFlag {
-    let payload = EventsPayload(
-        generatedAt: iso(Date()),
-        status: errorMsg == nil ? "no_access" : "error",
-        errorMessage: errorMsg,
-        today: [], tomorrow: [],
-        weather: weather
-    )
-    write(payload)
-    exit(0)
-}
-
-let cal = Calendar.current
-let todayStart = cal.startOfDay(for: Date())
-let tomorrowStart = cal.date(byAdding: .day, value: 1, to: todayStart)!
-let dayAfter = cal.date(byAdding: .day, value: 2, to: todayStart)!
-
-let payload = EventsPayload(
-    generatedAt: iso(Date()),
-    status: "ok",
-    errorMessage: nil,
-    today:    fetchEvents(store, from: todayStart, to: tomorrowStart),
-    tomorrow: fetchEvents(store, from: tomorrowStart, to: dayAfter),
-    weather:  weather
-)
-write(payload)

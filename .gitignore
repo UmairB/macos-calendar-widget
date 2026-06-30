@@ -3,6 +3,9 @@ build/
 *.saver/
 calendar-refresh
 
+# Personal location config — never committed; see Location.swift.example
+CalendarRefresh/Location.swift
+
 # macOS noise
 .DS_Store
 

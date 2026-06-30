@@ -50,18 +50,27 @@ The helper also fetches current weather from **Open-Meteo**
 for 15 minutes (reused from the previous `events.json` payload) to avoid
 hammering the API.
 
-Location is hardcoded as constants near the top of
-`CalendarRefresh/CalendarRefresh.swift`:
+Location is configured in `CalendarRefresh/Location.swift`, which is
+gitignored so your real coordinates are never committed. Before the first
+build, copy the example file and fill in your own values:
+
+```bash
+cd CalendarRefresh
+cp Location.swift.example Location.swift
+$EDITOR Location.swift
+```
+
+The file defines four constants:
 
 ```swift
-let WEATHER_LAT:   Double = 51.473185   // SW11 3ET (Battersea, London)
-let WEATHER_LON:   Double = -0.167173
-let WEATHER_LABEL: String = "London"
+let WEATHER_LAT:   Double = 0.0           // your latitude
+let WEATHER_LON:   Double = 0.0           // your longitude
+let WEATHER_LABEL: String = "MyLocation"  // human-readable label
 let WEATHER_CACHE_SECONDS: TimeInterval = 15 * 60
 ```
 
-Edit + `make reload` to change. UK postcodes can be converted to lat/lon
-via `https://api.postcodes.io/postcodes/<POSTCODE>`.
+UK postcodes can be converted to lat/lon via
+`https://api.postcodes.io/postcodes/<POSTCODE>`.
 
 We deliberately did NOT use Apple's WeatherKit — it requires a paid Apple
 Developer account ($99/yr) and JWT signing, which contradicts the
@@ -90,16 +99,22 @@ docs. This top-level doc covers the end-to-end story.
 From a fresh checkout, run these in order:
 
 ```bash
+# 0. Configure your weather location (required before first build)
+cd CalendarRefresh
+cp Location.swift.example Location.swift
+$EDITOR Location.swift   # fill in your lat/lon
+cd ..
+
 # 1. Build the polished saver first so its Resources/ directory exists
-cd ~/Source/CalendarSaver/CalendarSaver
+cd CalendarSaver
 make install                                  # builds bundle, installs to ~/Library/Screen Savers/
 
 # 2. Build the test saver (optional but useful for diagnosing future issues)
-cd ~/Source/CalendarSaver/CalendarSaverTest
+cd ../CalendarSaverTest
 make install
 
 # 3. Build helper, run once to grant Calendar access, then schedule it
-cd ~/Source/CalendarSaver/CalendarRefresh
+cd ../CalendarRefresh
 make run        # builds, installs, runs once — triggers macOS Calendar permission prompt. Click Allow.
 make load       # bootstraps the LaunchAgent so it refreshes every 60 seconds
 ```

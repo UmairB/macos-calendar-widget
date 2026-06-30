@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.umairb.CalendarSaver</string>
+    <string>com.example.CalendarSaver</string>
     <key>CFBundleName</key>
     <string>CalendarSaver</string>
     <key>CFBundleDisplayName</key>

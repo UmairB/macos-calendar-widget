@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.umairb.calendarrefresh</string>
+    <string>com.example.calendarrefresh</string>
 
     <key>ProgramArguments</key>
     <array>

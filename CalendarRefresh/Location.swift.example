@@ -1,0 +1,18 @@
+// Location config — copy this file to Location.swift and fill in your own
+// values. Location.swift is gitignored so your real coordinates never get
+// committed.
+//
+// Look up lat/lon from a UK postcode (free, no API key):
+//
+//     curl -fsSL "https://api.postcodes.io/postcodes/SW1A%201AA" \
+//       | python3 -c 'import json,sys; d=json.load(sys.stdin)["result"]; \
+//                     print(d["latitude"], d["longitude"])'
+//
+// Or use any reverse-geocoding tool. The display label is purely cosmetic.
+
+import Foundation
+
+let WEATHER_LAT:   Double       = 0.0           // your latitude
+let WEATHER_LON:   Double       = 0.0           // your longitude
+let WEATHER_LABEL: String       = "MyLocation"  // shown in the helper's stdout log only
+let WEATHER_CACHE_SECONDS: TimeInterval = 15 * 60

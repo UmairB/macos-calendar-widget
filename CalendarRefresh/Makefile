@@ -1,16 +1,22 @@
 NAME        := calendar-refresh
-SOURCE      := CalendarRefresh.swift
+SOURCES     := CalendarRefresh.swift Location.swift
 BUILD_DIR   := build
 BINARY      := $(BUILD_DIR)/$(NAME)
 INSTALL_DIR := $(HOME)/Library/Application Support/CalendarSaver/bin
-PLIST_DEST  := $(HOME)/Library/LaunchAgents/com.umairb.calendarrefresh.plist
+LABEL       := com.example.calendarrefresh
+PLIST_DEST  := $(HOME)/Library/LaunchAgents/$(LABEL).plist
+PLIST_TMPL  := $(LABEL).plist.template
 TARGET      := arm64-apple-macos14
 
 .PHONY: build install run load unload uninstall clean
 
 build: $(BINARY)
 
-$(BINARY): $(SOURCE) Info.plist
+$(BINARY): $(SOURCES) Info.plist
+	@if [ ! -f Location.swift ]; then \
+		echo "ERROR: Location.swift is missing. Copy Location.swift.example to Location.swift and edit it with your lat/lon."; \
+		exit 1; \
+	fi
 	@mkdir -p $(BUILD_DIR)
 	swiftc \
 		-target $(TARGET) \
@@ -22,7 +28,7 @@ $(BINARY): $(SOURCE) Info.plist
 		-Xlinker __info_plist \
 		-Xlinker Info.plist \
 		-o $(BINARY) \
-		$(SOURCE)
+		$(SOURCES)
 	codesign --force --sign - --timestamp=none $(BINARY)
 	@echo "Built: $(BINARY)"
 
@@ -35,13 +41,13 @@ run: install
 	"$(INSTALL_DIR)/$(NAME)"
 
 load: install
-	@sed "s|@@HOME@@|$(HOME)|g" com.umairb.calendarrefresh.plist.template > "$(PLIST_DEST)"
-	@launchctl bootout "gui/$$(id -u)/com.umairb.calendarrefresh" 2>/dev/null || true
+	@sed "s|@@HOME@@|$(HOME)|g" $(PLIST_TMPL) > "$(PLIST_DEST)"
+	@launchctl bootout "gui/$$(id -u)/$(LABEL)" 2>/dev/null || true
 	launchctl bootstrap "gui/$$(id -u)" "$(PLIST_DEST)"
 	@echo "Loaded launch agent: $(PLIST_DEST)"
 
 unload:
-	@launchctl bootout "gui/$$(id -u)/com.umairb.calendarrefresh" 2>/dev/null || true
+	@launchctl bootout "gui/$$(id -u)/$(LABEL)" 2>/dev/null || true
 	@rm -f "$(PLIST_DEST)"
 	@echo "Unloaded launch agent"
 

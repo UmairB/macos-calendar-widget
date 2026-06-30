@@ -48,7 +48,7 @@ let path = (NSHomeDirectory() as NSString)
 ```
 
 …and reported the file wasn't there, despite the helper definitely writing it
-at `/Users/umairb/Library/Application Support/CalendarSaver/events.json`.
+at `~/Library/Application Support/CalendarSaver/events.json`.
 
 **Root cause**: For sandboxed processes, `NSHomeDirectory()` returns the
 process's data container path, not the real user home. For
@@ -68,7 +68,7 @@ System Settings → Screen Saver. The test saver did. `codesign --verify`
 reported:
 
 ```
-/Users/umairb/Library/Screen Savers/CalendarSaver.saver: a sealed resource is
+~/Library/Screen Savers/CalendarSaver.saver: a sealed resource is
 missing or invalid
 file added: ...Resources/events.json
 ```
